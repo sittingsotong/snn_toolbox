@@ -1144,9 +1144,9 @@ class SNN(AbstractSNN):
     def is_parallelizable(self):
         return True
 
-    def add_input_layer(self, input_shape):
+    def add_input_layer(self, input_shape, name=None):
 
-        self.layers.append(module_input_stimulus(label='InputLayer',
+        self.layers.append(module_input_stimulus(label=name or 'InputLayer',
                                                  pop_size=input_shape[1:]))
 
         # Create megasim dir where it will store the SNN params and schematic

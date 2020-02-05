@@ -191,7 +191,7 @@ class AbstractSNN:
         pass
 
     @abstractmethod
-    def add_input_layer(self, input_shape):
+    def add_input_layer(self, input_shape, name=None):
         """Add input layer.
 
         Parameters
@@ -200,6 +200,8 @@ class AbstractSNN:
         input_shape: list | tuple
             Input shape to the network, including the batch size as first
             dimension.
+        name: Optional[str]
+            Name of layer.
         """
 
         pass
@@ -765,11 +767,14 @@ class AbstractSNN:
     def setup_layers(self, batch_shape):
         """Iterates over all layers to instantiate them in the simulator"""
 
-        self.add_input_layer(batch_shape)
-        for layer in self.parsed_model.layers[1:]:
+        for layer in self.parsed_model.layers:
             print("Building layer: {}".format(layer.name))
-            self.add_layer(layer)
             layer_type = get_type(layer)
+            if layer_type == 'InputLayer':
+                self.add_input_layer(batch_shape, layer.name)
+                continue
+
+            self.add_layer(layer)
             if layer_type == 'Dense':
                 self.build_dense(layer)
             elif layer_type in {'Conv2D', 'DepthwiseConv2D'}:

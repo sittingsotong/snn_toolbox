@@ -131,7 +131,7 @@ spike_codes = {'temporal_mean_rate', 'temporal_pattern', 'ttfs',
 # Layers that have neurons with membrane potentials, from which we can measure spikes:
 spiking_layers = {'Dense', 'Conv1D', 'Conv2D', 'DepthwiseConv2D', 'MaxPooling2D',
                   'AveragePooling2D', 'Sparse', 'SparseConv2D',
-                  'SparseDepthwiseConv2D'}
+                  'SparseDepthwiseConv2D', 'Lambda', 'InputLayer'}
 # Layers that can be implemented by our spiking neuron simulators:
 snn_layers = %(spiking_layers)s | {'Reshape', 'Flatten', 'Concatenate',
                                    'ZeroPadding2D'}

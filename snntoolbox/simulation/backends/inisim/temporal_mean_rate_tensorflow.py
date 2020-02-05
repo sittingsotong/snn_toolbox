@@ -19,8 +19,9 @@ import numpy as np
 from future import standard_library
 import tensorflow as tf
 from keras import backend as k
+from keras.engine import InputLayer
 from keras.layers import Dense, Flatten, AveragePooling2D, MaxPooling2D, \
-    Conv2D, DepthwiseConv2D, ZeroPadding2D, Reshape
+    Conv2D, DepthwiseConv2D, ZeroPadding2D, Reshape, Conv1D, Lambda
 from keras.layers import Layer, Concatenate
 
 from snntoolbox.parsing.utils import get_inbound_layers
@@ -496,6 +497,58 @@ def get_isi_from_impulse(impulse, epsilon):
                     np.true_divide(1., impulse))
 
 
+class SpikeInputLayer(InputLayer):
+    """Spike merge layer"""
+
+    def __init__(self, **kwargs):
+        kwargs.pop(str('config'))
+        InputLayer.__init__(self, **kwargs)
+
+    @staticmethod
+    def get_time():
+
+        pass
+
+    @staticmethod
+    def reset(sample_idx):
+        """Reset layer variables."""
+
+        pass
+
+    @property
+    def class_name(self):
+        """Get class name."""
+
+        return self.__class__.__name__
+
+
+class SpikeLambda(Lambda):
+    """Spike merge layer"""
+
+    def __init__(self, **kwargs):
+        kwargs.pop(str('config'))
+        kwargs.pop(str('function_type'), None)
+        kwargs.pop('output_shape_type', None)
+        Lambda.__init__(self, **kwargs)
+
+    @staticmethod
+    def get_time():
+
+        pass
+
+    @staticmethod
+    def reset(sample_idx):
+        """Reset layer variables."""
+
+        pass
+
+    @property
+    def class_name(self):
+        """Get class name."""
+
+        return self.__class__.__name__
+
+
 class SpikeConcatenate(Concatenate):
     """Spike merge layer"""
 
@@ -634,6 +687,34 @@ class SpikeDense(Dense, SpikeLayer):
         return Dense.call(self, x)
 
 
+class SpikeConv1D(Conv1D, SpikeLayer):
+    """Spike 2D Convolution."""
+
+    def build(self, input_shape):
+        """Creates the layer weights.
+        Must be implemented on all layers that have weights.
+
+        Parameters
+        ----------
+
+        input_shape: Union[list, tuple, Any]
+            Keras tensor (future input to layer) or list/tuple of Keras tensors
+            to reference for weight shape computations.
+        """
+
+        Conv1D.build(self, input_shape)
+        self.init_neurons(input_shape)
+
+        if self.config.getboolean('cell', 'bias_relaxation'):
+            self.b0 = k.variable(k.get_value(self.bias))
+            self.add_update([(self.bias, self.update_b())])
+
+    @spike_call
+    def call(self, x, mask=None):
+
+        return Conv1D.call(self, x)
+
+
 class SpikeConv2D(Conv2D, SpikeLayer):
     """Spike 2D Convolution."""
 
@@ -749,8 +830,10 @@ custom_layers = {'SpikeFlatten': SpikeFlatten,
                  'SpikeReshape': SpikeReshape,
                  'SpikeZeroPadding2D': SpikeZeroPadding2D,
                  'SpikeDense': SpikeDense,
+                 'SpikeConv1D': SpikeConv1D,
                  'SpikeConv2D': SpikeConv2D,
                  'SpikeDepthwiseConv2D': SpikeDepthwiseConv2D,
                  'SpikeAveragePooling2D': SpikeAveragePooling2D,
                  'SpikeMaxPooling2D': SpikeMaxPooling2D,
-                 'SpikeConcatenate': SpikeConcatenate}
+                 'SpikeConcatenate': SpikeConcatenate,
+                 'SpikeLambda': SpikeLambda}

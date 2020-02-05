@@ -84,6 +84,11 @@ def normalize_parameters(model, config, **kwargs):
 
     batch_size = config.getint('simulation', 'batch_size')
 
+    n_inputs = 0
+    for layer in model.layers:
+        if layer.__class__.__name__ == 'InputLayer':
+            n_inputs += 1
+
     # If scale factors have not been computed in a previous run, do so now.
     if len(scale_facs) == 1:
         i = 0
@@ -342,8 +347,8 @@ def get_activations_layer(layer_in, layer_out, x, batch_size=None):
     if batch_size is None:
         batch_size = 10
 
-    if len(x) % batch_size != 0:
-        x = x[: -(len(x) % batch_size)]
+    # if len(x) % batch_size != 0:
+    #     x = x[: -(len(x) % batch_size)]
 
     return keras.models.Model(layer_in, layer_out).predict(x, batch_size)
 
@@ -376,13 +381,15 @@ def get_activations_batch(ann, x_batch):
         ``label`` is a string specifying the layer type, e.g. ``'Dense'``.
     """
 
+    from snntoolbox.bin.utils import load_config
+
+    config = load_config(os.path.abspath(os.path.join(
+        os.path.dirname(__file__), '..', 'config_defaults')))
+
     activations_batch = []
     for layer in ann.layers:
-        # Todo: This list should be replaced by
-        #       ``not in eval(config.get('restrictions', 'spiking_layers')``
-        if layer.__class__.__name__ in ['Input', 'InputLayer', 'Flatten',
-                                        'Concatenate', 'ZeroPadding2D',
-                                        'Reshape']:
+        if layer.__class__.__name__ not in eval(config.get('restrictions',
+                                                           'spiking_layers')):
             continue
         activations = keras.models.Model(
             ann.input, layer.output).predict_on_batch(x_batch)

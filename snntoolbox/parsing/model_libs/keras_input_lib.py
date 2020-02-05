@@ -34,11 +34,6 @@ class ModelParser(AbstractModelParser):
         from snntoolbox.parsing.utils import get_inbound_layers
         return get_inbound_layers(layer)
 
-    @property
-    def layers_to_skip(self):
-        # noinspection PyArgumentList
-        return AbstractModelParser.layers_to_skip.fget(self)
-
     def has_weights(self, layer):
         from snntoolbox.parsing.utils import has_weights
         return has_weights(layer)
@@ -106,6 +101,17 @@ class ModelParser(AbstractModelParser):
 
     def parse_concatenate(self, layer, attributes):
         pass
+
+    def parse_input(self, layer, attributes):
+        pass
+
+    def parse_lambda(self, layer, attributes):
+
+        from keras.utils.generic_utils import func_load
+        attributes['function'] = func_load(attributes['function'],
+                                           globs=(globals()))
+        attributes.pop('function_type', None)
+        attributes.pop('output_shape_type', None)
 
 
 def load(path, filename, **kwargs):

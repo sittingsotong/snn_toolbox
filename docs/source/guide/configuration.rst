@@ -291,8 +291,8 @@ batch_size: int, optional
 
 reset_between_nth_sample: int, optional
     When testing a video sequence, this option allows turning off the reset
-    between individual samples. Default: 1 (reset after every frame). Set to a
-    negative value to turn off reset completely.
+    between individual samples. Default: 1 (reset after every frame). Set to 0
+    to turn off reset completely.
 
 top_k: int, optional
     In addition to the top-1 error, report ``top_k`` error during simulation.

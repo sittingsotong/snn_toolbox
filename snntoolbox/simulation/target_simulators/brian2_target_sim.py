@@ -80,7 +80,7 @@ class SNN(AbstractSNN):
     def is_parallelizable(self):
         return False
 
-    def add_input_layer(self, input_shape):
+    def add_input_layer(self, input_shape, name=None):
 
         if self._poisson_input:
             self.layers.append(self.sim.PoissonGroup(
@@ -92,7 +92,7 @@ class SNN(AbstractSNN):
                 reset=self.v_reset, threshold=self.threshold,
                 dt=self._dt * self.sim.ms))
         self.layers[0].add_attribute('label')
-        self.layers[0].label = 'InputLayer'
+        self.layers[0].label = name or 'InputLayer'
         self.spikemonitors.append(self.sim.SpikeMonitor(self.layers[0]))
         # Need placeholders "None" for layers without states:
         self.statemonitors.append(self.sim.StateMonitor(self.layers[0], [],

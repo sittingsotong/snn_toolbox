@@ -66,13 +66,13 @@ class SNN(AbstractSNN):
     def is_parallelizable(self):
         return False
 
-    def add_input_layer(self, input_shape):
+    def add_input_layer(self, input_shape, name=None):
 
         celltype = self.sim.SpikeSourcePoisson() if self._poisson_input \
             else self.sim.SpikeSourceArray()
         self.layers.append(self.sim.Population(
             np.prod(input_shape[1:], dtype=np.int).item(), celltype,
-            label='InputLayer'))
+            label=name or 'InputLayer'))
 
     def add_layer(self, layer):
 

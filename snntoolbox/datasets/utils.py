@@ -83,12 +83,14 @@ def get_dataset(config):
             dataset_path))
         if is_testset_needed:
             num_to_test = config.getint('simulation', 'num_to_test')
+            x_test_mh = load_npz(dataset_path, 'x_test.npz')
             testset = {
-                'x_test': load_npz(dataset_path, 'x_test.npz')[:num_to_test],
+                'x_test': [x[:num_to_test] for x in x_test_mh],
                 'y_test': load_npz(dataset_path, 'y_test.npz')[:num_to_test]}
             assert testset, "Test set empty."
         if is_normset_needed:
-            normset = {'x_norm': load_npz(dataset_path, 'x_norm.npz')}
+            x_norm_mh = load_npz(dataset_path, 'x_norm.npz')
+            normset = {'x_norm': [x for x in x_norm_mh]}
             assert normset, "Normalization set empty."
 
     # ________________________________ jpg ___________________________________#

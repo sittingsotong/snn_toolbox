@@ -207,6 +207,12 @@ class AbstractModelParser:
                                'name': self.get_name(layer, idx),
                                'inbound': inbound})
 
+            if layer_type == 'InputLayer':
+                self.parse_input(layer, attributes)
+
+            if layer_type == 'Lambda':
+                self.parse_lambda(layer, attributes)
+
             if layer_type == 'Dense':
                 self.parse_dense(layer, attributes)
 
@@ -349,19 +355,20 @@ class AbstractModelParser:
 
         """
 
+        snn_layers = eval(self.config.get('restrictions', 'snn_layers'))
         inbound = self.get_inbound_layers(layer)
         for ib in range(len(inbound)):
-            for _ in range(len(self.layers_to_skip)):
-                if self.get_type(inbound[ib]) in self.layers_to_skip:
-                    inbound[ib] = self.get_inbound_layers(inbound[ib])[0]
-                else:
+            for _ in range(len(name_map)):
+                if self.get_type(inbound[ib]) in snn_layers:
                     break
-        if len(self._layer_list) == 0 or \
-                any([self.get_type(inb) == 'InputLayer' for inb in inbound]):
-            return ['input']
-        else:
-            inb_idxs = [name_map[str(id(inb))] for inb in inbound]
-            return [self._layer_list[i]['name'] for i in inb_idxs]
+                else:
+                    inbound[ib] = self.get_inbound_layers(inbound[ib])[0]
+        # if len(self._layer_list) == 0 or \
+        #         any([self.get_type(inb) == 'InputLayer' for inb in inbound]):
+        #     return ['input']
+        # else:
+        inb_idxs = [name_map[str(id(inb))] for inb in inbound]
+        return [self._layer_list[i]['name'] for i in inb_idxs]
 
     @abstractmethod
     def get_inbound_layers(self, layer):
@@ -374,26 +381,6 @@ class AbstractModelParser:
         """
 
         pass
-
-    @property
-    def layers_to_skip(self):
-        """
-        Return a list of layer names that should be skipped during conversion
-        to a spiking network.
-
-        Returns
-        -------
-
-        self._layers_to_skip: List[str]
-        """
-
-        # Todo: We should get this list from some central place like the
-        #       ``config_defaults`` file.
-        return ['BatchNormalization',
-                'Activation',
-                'Dropout',
-                'ReLU',
-                'ActivityRegularization']
 
     @abstractmethod
     def has_weights(self, layer):
@@ -499,12 +486,14 @@ class AbstractModelParser:
         pass
 
     def try_insert_flatten(self, layer, idx, name_map):
+        if self.get_type(layer) == 'InputLayer':
+            return False
         output_shape = self.get_output_shape(layer)
         previous_layers = self.get_inbound_layers(layer)
         prev_layer_output_shape = self.get_output_shape(previous_layers[0])
         if len(output_shape) < len(prev_layer_output_shape) and \
                 self.get_type(layer) != 'Flatten' and \
-                self.get_type(previous_layers[0]) != 'InputLayer':
+                self.get_type(layer) != 'Lambda':
             assert len(previous_layers) == 1, \
                 "Layer to flatten must be unique."
             print("Inserting layer Flatten.")
@@ -518,6 +507,36 @@ class AbstractModelParser:
             return True
         else:
             return False
+
+    @abstractmethod
+    def parse_input(self, layer, attributes):
+        """Parse an input layer.
+
+        Parameters
+        ----------
+
+        layer:
+            Layer.
+        attributes: dict
+            The layer attributes as key-value pairs in a dict.
+        """
+
+        pass
+
+    @abstractmethod
+    def parse_lambda(self, layer, attributes):
+        """Parse a lambda layer.
+
+        Parameters
+        ----------
+
+        layer:
+            Layer.
+        attributes: dict
+            The layer attributes as key-value pairs in a dict.
+        """
+
+        pass
 
     @abstractmethod
     def parse_dense(self, layer, attributes):
@@ -713,11 +732,20 @@ class AbstractModelParser:
             A Keras model, functionally equivalent to `input_model`.
         """
 
-        img_input = keras.layers.Input(
-            batch_shape=self.get_batch_input_shape(), name='input')
-        parsed_layers = {'input': img_input}
         print("Building parsed model...\n")
-        for layer in self._layer_list:
+        inputs = []
+        parsed_layers = {}
+        num_inputs = len([l for l in self.input_model.layers
+                          if self.get_type(l) == 'InputLayer'])
+        for i, layer in enumerate(self._layer_list):
+            if i < num_inputs:
+                input_layer = keras.layers.Input(
+                    batch_shape=self.get_batch_input_shape(),
+                    name=layer['name'])
+                parsed_layers[layer['name']] = input_layer
+                inputs.append(input_layer)
+                continue
+
             # Replace 'parameters' key with Keras key 'weights'
             if 'parameters' in layer:
                 layer['weights'] = layer.pop('parameters')
@@ -737,14 +765,15 @@ class AbstractModelParser:
             parsed_layers[layer['name']] = parsed_layer(**layer)(inbound)
 
         print("Compiling parsed model...\n")
-        self.parsed_model = keras.models.Model(img_input, parsed_layers[
+        self.parsed_model = keras.models.Model(inputs, parsed_layers[
             self._layer_list[-1]['name']])
         # Optimizer and loss do not matter because we only do inference.
         self.parsed_model.compile(
-            'sgd', 'categorical_crossentropy',
+            'sgd', 'sparse_categorical_crossentropy',
             ['accuracy', keras.metrics.top_k_categorical_accuracy])
         # Todo: Enable adding custom metric via self.input_model.metrics.
         self.parsed_model.summary()
+
         return self.parsed_model
 
     def evaluate(self, batch_size, num_to_test, x_test=None, y_test=None,
