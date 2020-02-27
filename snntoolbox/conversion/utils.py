@@ -174,11 +174,18 @@ def normalize_parameters(model, config, **kwargs):
                     parameters_norm[0][:, :, f_in, :] *= \
                         scale_facs[inb.name] / scale_fac
                     offset += f_out
-            else:
+            elif parameters[0].ndim == 2:
                 # Fully-connected layers need more consideration, because they
                 # could receive input from several conv layers that are
                 # concatenated and then flattened. The neuron position in the
                 # flattened layer depend on the image_data_format.
+                offset = 0  # Offset for number of input neurons in branch.
+                for inb in inbound:
+                    n = inb.output_shape[-1]  # Works only for the realtaste project (Lambda layer!)
+                    parameters_norm[0][offset: offset + n] *= \
+                        scale_facs[inb.name] / scale_fac
+                    offset += n
+            else:
                 raise NotImplementedError
 
         # Check if the layer happens to be Sparse
@@ -388,8 +395,7 @@ def get_activations_batch(ann, x_batch):
 
     activations_batch = []
     for layer in ann.layers:
-        if layer.__class__.__name__ not in eval(config.get('restrictions',
-                                                           'spiking_layers')):
+        if 'Input' in layer.name or layer.__class__.__name__ not in eval(config.get('restrictions', 'spiking_layers')):
             continue
         activations = keras.models.Model(
             ann.input, layer.output).predict_on_batch(x_batch)

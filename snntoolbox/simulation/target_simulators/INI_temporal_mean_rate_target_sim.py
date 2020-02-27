@@ -64,6 +64,8 @@ class SNN(AbstractSNN):
     def add_layer(self, layer):
         from snntoolbox.parsing.utils import get_type
         spike_layer_name = getattr(self.sim, 'Spike' + get_type(layer))
+        if 'Last' in get_type(layer):
+            print('foo')
         # noinspection PyProtectedMember
         inbound = [self._spiking_layers[inb.name] for inb in
                    layer._inbound_nodes[0].inbound_layers]
@@ -147,7 +149,7 @@ class SNN(AbstractSNN):
         from snntoolbox.utils.utils import echo
         from snntoolbox.simulation.utils import get_layer_synaptic_operations
 
-        input_b_l = kwargs[str('x_b_l')] * self._dt
+        input_b_l = [x * self._dt for x in kwargs[str('x_b_l')]]
 
         output_b_l_t = np.zeros((self.batch_size, self.num_classes,
                                  self._num_timesteps))
@@ -211,7 +213,7 @@ class SNN(AbstractSNN):
                     j += 1
 
             if 'input_b_l_t' in self._log_keys:
-                self.input_b_l_t[Ellipsis, sim_step_int] = input_b_l
+                self.input_b_l_t[Ellipsis, sim_step_int] = input_b_l[0]
             if self._poisson_input or self._dataset_format == 'aedat':
                 if self.synaptic_operations_b_t is not None:
                     self.synaptic_operations_b_t[:, sim_step_int] += \
@@ -260,7 +262,7 @@ class SNN(AbstractSNN):
 
     def reset(self, sample_idx):
 
-        for layer in self.snn.layers[1:]:  # Skip input layer
+        for layer in self.snn.layers[9:]:  # Skip input layer
             layer.reset(sample_idx)
 
     def end_sim(self):
@@ -335,7 +337,7 @@ class SNN(AbstractSNN):
             Current simulation time.
         """
 
-        for layer in self.snn.layers[1:]:
+        for layer in self.snn.layers[9:]:
             if layer.get_time() is not None:  # Has time attribute
                 layer.set_time(np.float32(t))
 

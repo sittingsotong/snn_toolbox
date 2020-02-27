@@ -573,9 +573,9 @@ class AbstractSNN:
             if x_test is not None:
                 batch_idxs = range(self.batch_size * batch_idx,
                                    self.batch_size * (batch_idx + 1))
-                x_b_l = x_test[batch_idxs, :]
+                x_b_l = [x[batch_idxs, :] for x in x_test]
                 if y_test is not None:
-                    y_b_l = y_test[batch_idxs, :]
+                    y_b_l = keras.utils.to_categorical(y_test[batch_idxs])
             elif dataflow is not None:
                 x_b_l, y_b_l = dataflow.next()
             elif dataset_format == 'aedat':
@@ -640,7 +640,7 @@ class AbstractSNN:
 
             # Evaluate ANN on the same batch as SNN for a direct comparison.
             score = self.parsed_model.evaluate(
-                x_b_l, y_b_l, self.parsed_model.input_shape[0], verbose=0)
+                x_b_l, truth_b, self.parsed_model.input_shape[0][0], verbose=0)
             score1_ann += score[1] * self.batch_size
             score5_ann += score[2] * self.batch_size
             self.top1err_ann = 1 - score1_ann / num_samples_seen
@@ -651,7 +651,7 @@ class AbstractSNN:
 
             # Plot input image.
             if 'input_image' in self._plot_keys:
-                snn_plt.plot_input_image(x_b_l[0], int(truth_b[0]), log_dir,
+                snn_plt.plot_input_image(x_b_l[0][0], int(truth_b[0]), log_dir,
                                          self.data_format)
                 if self.input_b_l_t is not None:
                     input_rates = np.count_nonzero(self.input_b_l_t[0], -1) / \
@@ -659,7 +659,7 @@ class AbstractSNN:
                     snn_plt.plot_input_image(
                         input_rates, int(truth_b[0]), log_dir,
                         self.data_format, 'input_rates')
-                    snn_plt.plot_correlations(x_b_l[0], input_rates, log_dir,
+                    snn_plt.plot_correlations(x_b_l[0][0], input_rates, log_dir,
                                               'input_correlation')
 
             # Plot error vs time.
@@ -703,7 +703,7 @@ class AbstractSNN:
             log_vars['top1err_ann'] = self.top1err_ann
             log_vars['top5err_ann'] = self.top5err_ann
             log_vars['operations_ann'] = self.operations_ann / 1e6
-            log_vars['input_image_b_l'] = x_b_l
+            log_vars['input_image_b_l'] = x_b_l[0]
             log_vars['true_classes_b'] = truth_b
             if self.spiketrains_n_b_l_t is not None:
                 log_vars['avg_rate'] = self.get_avg_rate_from_trains()
@@ -827,7 +827,7 @@ class AbstractSNN:
         """Initialize variables to record during simulation."""
 
         if 'input_b_l_t' in self._log_keys:
-            self.input_b_l_t = np.zeros(list(self.parsed_model.input_shape) +
+            self.input_b_l_t = np.zeros(list(self.parsed_model.input_shape[0]) +
                                         [self._num_timesteps])
 
         if any({'spiketrains', 'spikerates', 'correlation', 'spikecounts',
@@ -835,7 +835,7 @@ class AbstractSNN:
                 or 'spiketrains_n_b_l_t' in self._log_keys:
             self.spiketrains_n_b_l_t = []
             for layer in self.parsed_model.layers:
-                if not is_spiking(layer, self.config):
+                if 'Input' in get_type(layer) or not is_spiking(layer, self.config):
                     continue
                 shape = list(layer.output_shape) + [self._num_timesteps]
                 self.spiketrains_n_b_l_t.append((np.zeros(shape, 'float32'),
@@ -860,7 +860,7 @@ class AbstractSNN:
         if 'mem_n_b_l_t' in self._log_keys or 'v_mem' in self._plot_keys:
             self.mem_n_b_l_t = []
             for layer in self.parsed_model.layers:
-                if not is_spiking(layer, self.config):
+                if 'Input' in get_type(layer) or not is_spiking(layer, self.config):
                     continue
                 shape = list(layer.output_shape) + [self._num_timesteps]
                 self.mem_n_b_l_t.append((np.zeros(shape, 'float32'),

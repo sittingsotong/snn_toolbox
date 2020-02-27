@@ -37,6 +37,9 @@ from abc import abstractmethod
 import keras
 import numpy as np
 
+from snntoolbox.bin.utils import get_custom_objects
+from snntoolbox.utils.utils import is_module_installed
+
 
 class AbstractModelParser:
     """Abstract base class for neural network model parsers.
@@ -486,14 +489,15 @@ class AbstractModelParser:
         pass
 
     def try_insert_flatten(self, layer, idx, name_map):
-        if self.get_type(layer) == 'InputLayer':
+        layer_type = self.get_type(layer)
+        # Todo: The latter two are specific to the "realtaste" project and
+        #       should not be pushed to master.
+        if layer_type in ['InputLayer', 'Flatten', 'Lambda', 'LastRowLayer']:
             return False
         output_shape = self.get_output_shape(layer)
         previous_layers = self.get_inbound_layers(layer)
         prev_layer_output_shape = self.get_output_shape(previous_layers[0])
-        if len(output_shape) < len(prev_layer_output_shape) and \
-                self.get_type(layer) != 'Flatten' and \
-                self.get_type(layer) != 'Lambda':
+        if len(output_shape) < len(prev_layer_output_shape):
             assert len(previous_layers) == 1, \
                 "Layer to flatten must be unique."
             print("Inserting layer Flatten.")
@@ -752,11 +756,16 @@ class AbstractModelParser:
 
             # Add layer
             layer_type = layer.pop('layer_type')
+            parsed_layer = None
+            custom_objects = get_custom_objects(self.config)
             if hasattr(keras.layers, layer_type):
                 parsed_layer = getattr(keras.layers, layer_type)
-            else:
+            elif layer_type in custom_objects:
+                parsed_layer = custom_objects[layer_type]
+            elif is_module_installed('keras_rewiring'):
                 import keras_rewiring
                 parsed_layer = getattr(keras_rewiring.sparse_layer, layer_type)
+            assert parsed_layer is not None
 
             inbound = [parsed_layers[inb] for inb in layer.pop('inbound')]
             if len(inbound) == 1:
@@ -1397,6 +1406,9 @@ def get_custom_layers_dict(filepath=None):
         with open(filepath) as f:
             kwargs = json.load(f)
             custom_layers.update(kwargs)
+
+    from scripts.realtaste.utils import LastRowLayer
+    custom_layers['LastRowLayer'] = LastRowLayer
 
     return custom_layers
 

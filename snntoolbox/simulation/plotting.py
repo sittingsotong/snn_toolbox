@@ -231,8 +231,9 @@ def plot_layer_activity(layer, title, path=None, limits=None,
         One of 'channels_first' or 'channels_last'.
     """
     data = layer[0]
+    ndim = data.ndim
     # Reshape data to our default format.
-    if data_format != 'channels_first' and data.ndim == 3:
+    if data_format != 'channels_first' and ndim == 3:
         data = np.moveaxis(data, -1, 0)
 
     # Highest possible spike rate, used to normalize image plots. Need to
@@ -250,7 +251,7 @@ def plot_layer_activity(layer, title, path=None, limits=None,
     fac = 1  # Scales height of colorbar
     # Case: One-dimensional layer (e.g. Dense). If larger than 100 neurons,
     # form a rectangle. Otherwise plot a 1d-image.
-    if len(shape) == 1:
+    if ndim == 1:
         if num >= 100:
             n = int(np.sqrt(num))
             while num / n % 1 != 0:
@@ -263,6 +264,10 @@ def plot_layer_activity(layer, title, path=None, limits=None,
             im = ax.imshow(np.array(data, ndmin=2),
                            interpolation='nearest', clim=limits)
         ax.get_yaxis().set_visible(False)
+    # Case: Two-dimensional layer (e.g. Conv1D). Plot as is.
+    elif ndim == 2:
+        f, ax = plt.subplots()
+        im = ax.imshow(data, interpolation='nearest', clim=limits)
     # Case: Multi-dimensional layer, where first dimension gives the number of
     # channels (input layer) or feature maps (convolution layer).
     # Plot feature maps as 2d-images next to each other, but start a new column

@@ -589,3 +589,14 @@ def get_plot_keys(config):
 def config_string_to_set_of_strings(string):
     set_unicode = set(eval(string))
     return {str(s) for s in set_unicode}
+
+
+def get_custom_objects(config):
+    import importlib
+    filepath = config.get('paths', 'filepath_custom_objects', fallback='')
+    if filepath == '':
+        return {}
+    spec = importlib.util.spec_from_file_location('custom_objects', filepath)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return {k: v for k, v in module.__dict__.items() if '__' not in k}
