@@ -63,9 +63,8 @@ class SNN(AbstractSNN):
             self.v_reset = 'v = v - v_thresh'
         else:
             self.v_reset = 'v = v_reset'
-        self.eqs = '''dv/dt = (I-v)/tau : 1
-                      I : 1
-                      tau : second '''
+        self.eqs = '''dv/dt = (I-v)/(10*ms) : 1
+                      I : 1 '''
         self.spikemonitors = []
         self.statemonitors = []
         self.snn = None
@@ -92,7 +91,6 @@ class SNN(AbstractSNN):
                 dt=self._dt * self.sim.ms))
         self.layers[0].add_attribute('label')
         self.layers[0].label = 'InputLayer'
-        self.layers[0].tau = 10 * self.sim.ms
         self.spikemonitors.append(self.sim.SpikeMonitor(self.layers[0]))
         # Need placeholders "None" for layers without states:
         self.statemonitors.append(self.sim.StateMonitor(self.layers[0], [],
@@ -116,7 +114,6 @@ class SNN(AbstractSNN):
             dt=self._dt * self.sim.ms))
         self.layers[-1].add_attribute('label')
         self.layers[-1].label = layer.name
-        self.layers[-1].tau = 10 * self.sim.ms
         if 'spiketrains' in self._plot_keys \
                 or 'spiketrains_n_b_l_t' in self._log_keys:
             self.spikemonitors.append(self.sim.SpikeMonitor(self.layers[-1]))
@@ -220,7 +217,7 @@ class SNN(AbstractSNN):
 
         inputs = kwargs[str('x_b_l')].flatten()
         if self._poisson_input:
-            self._input_layer.rates = inputs / self.rescale_fac
+            self._input_layer.rates = ( inputs / self.rescale_fac ) * self.sim.Hz
         elif self._is_aedat_input:
             # TODO: Implement by using brian2.SpikeGeneratorGroup.
             raise NotImplementedError
@@ -384,4 +381,4 @@ class SNN(AbstractSNN):
         if any(biases):
             assert self.layers[-1].I.shape == biases.shape, \
                 "Shape of biases and network do not match."
-            self.layers[-1].I = biases * 10
+            self.layers[-1].I = biases * 70
