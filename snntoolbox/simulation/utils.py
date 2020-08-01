@@ -1778,7 +1778,16 @@ def get_weights(layer):
     else:
         raise ValueError("Layer {} was expected to contain weights, biases "
                          "and, in rare cases,masks.".format(layer.name))
-    return weights, biases
+
+    quantised_weights = []
+    print(type(weights))
+
+    for value in weights:
+        quantised_value = np.round(value, 4)
+        quantised_weights.append(value)
+
+    print(quantised_weights)
+    return quantised_weights, biases
 
 
 def remove_name_counter(name_in):

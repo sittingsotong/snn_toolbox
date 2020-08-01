@@ -125,7 +125,7 @@ config['simulation'] = {
 }
 
 config['input'] = {
-    'poisson_input': True          # Images are encodes as spike trains.
+    'poisson_input': False          # Images are encodes as spike trains.
 }
 
 config['output'] = {

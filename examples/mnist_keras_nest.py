@@ -134,12 +134,7 @@ config['cell'] = {
 
 config['output'] = {
     'plot_vars': {                  # Various plots (slows down simulation).
-        'spiketrains',              # Leave section empty to turn off plots.
-        'spikerates',
-        'activations',
-        'correlation',
-        'v_mem',
-        'error_t'}
+        'all'}
 }
 
 # Store config file.

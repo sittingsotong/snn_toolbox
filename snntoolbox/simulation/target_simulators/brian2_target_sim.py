@@ -63,8 +63,8 @@ class SNN(AbstractSNN):
             self.v_reset = 'v = v - v_thresh'
         else:
             self.v_reset = 'v = v_reset'
-        self.eqs = '''dv/dt = (I-v)/(10*ms) : 1
-                      I : 1 '''
+        self.eqs = '''dv/dt = bias : 1
+                      bias : hertz'''
         self.spikemonitors = []
         self.statemonitors = []
         self.snn = None
@@ -215,14 +215,14 @@ class SNN(AbstractSNN):
 
     def simulate(self, **kwargs):
 
-        inputs = kwargs[str('x_b_l')].flatten()
+        inputs = kwargs[str('x_b_l')].flatten() / self.sim.ms
         if self._poisson_input:
-            self._input_layer.rates = ( inputs / self.rescale_fac ) * self.sim.Hz
+            self._input_layer.rates = inputs / self.rescale_fac
         elif self._is_aedat_input:
             # TODO: Implement by using brian2.SpikeGeneratorGroup.
             raise NotImplementedError
         else:
-            self._input_layer.I = inputs
+            self._input_layer.bias = inputs
 
         self.snn.run(self._duration * self.sim.ms, namespace=self._cell_params,
                      report='stdout', report_period=10 * self.sim.ms)
@@ -379,6 +379,6 @@ class SNN(AbstractSNN):
     def set_biases(self, biases):
         """Set biases."""
         if any(biases):
-            assert self.layers[-1].I.shape == biases.shape, \
+            assert self.layers[-1].bias.shape == biases.shape, \
                 "Shape of biases and network do not match."
-            self.layers[-1].I = biases * 70
+            self.layers[-1].bias = biases / self.sim.ms
