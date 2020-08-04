@@ -38,7 +38,7 @@ config['simulation'] = {
 }
 
 config['input'] = {
-    'poisson_input': True,          # Images are encodes as spike trains.
+    'poisson_input': False,          # Images are encodes as spike trains.
 }
 
 config['output'] = {
@@ -50,10 +50,6 @@ config['output'] = {
         'v_mem',
         'input_image',
         'error_t'}
-}
-config['cell'] = {
-    'v_thresh': 1,
-    'v_reset': 0
 }
 
 # Store config file.

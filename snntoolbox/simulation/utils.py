@@ -1772,22 +1772,25 @@ def get_weights(layer):
     all_weights = layer.get_weights()
     if len(all_weights) == 2:
         weights, biases = all_weights
+        weights = np.round(weights, 1)
     elif len(all_weights) == 3:
         weights, biases, masks = all_weights
         weights = weights * masks
+        weights = np.round(weights, 1)
     else:
         raise ValueError("Layer {} was expected to contain weights, biases "
                          "and, in rare cases,masks.".format(layer.name))
 
-    quantised_weights = []
     print(type(weights))
-
-    for value in weights:
-        quantised_value = np.round(value, 4)
-        quantised_weights.append(value)
-
-    print(quantised_weights)
-    return quantised_weights, biases
+    print(weights)
+    # quantised_weights = []
+    #
+    # for value in weights:
+    #     quantised_value = np.round(value, 4)
+    #     quantised_weights.append(quantised_value)
+    #
+    # print(quantised_weights)
+    return weights, biases
 
 
 def remove_name_counter(name_in):
