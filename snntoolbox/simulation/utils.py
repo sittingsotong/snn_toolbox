@@ -1753,9 +1753,26 @@ def get_shape_from_label(label):
     """
     return [int(i) for i in label.split('_')[1].split('x')]
 
+def quantise(weight):
+    result = 0
+    neg = False
+    if weight < 0:
+        neg = True
+        weight = abs(weight)
+
+    for index in range(2):
+        weight *= 2
+        if weight >= 1:
+            weight -= 1
+            result += pow(2, -(index + 1))
+
+    if neg:
+        return -result
+    else:
+        return result
 
 def get_weights(layer):
-    """Get weights of Keras layer, possibly applying sparsifying mask.
+    """Get weights obf Keras layer, possibly applying sparsifying mask.
 
     Parameters
     ----------
@@ -1772,24 +1789,26 @@ def get_weights(layer):
     all_weights = layer.get_weights()
     if len(all_weights) == 2:
         weights, biases = all_weights
-        weights = np.round(weights, 1)
+        a, b, c, d = weights.shape
+        for i in range(a):
+            for j in range(b):
+                for k in range(c):
+                    for l in range(d):
+                        weights[i][j][k][l] = quantise(weights[i][j][k][l])
+        print(weights)
     elif len(all_weights) == 3:
         weights, biases, masks = all_weights
         weights = weights * masks
-        weights = np.round(weights, 1)
+        a, b, c, d = weights.shape
+        for i in range(a):
+            for j in range(b):
+                for k in range(c):
+                    for l in range(d):
+                        weights[i][j][k][l] = quantise(weights[i][j][k][l])
     else:
         raise ValueError("Layer {} was expected to contain weights, biases "
                          "and, in rare cases,masks.".format(layer.name))
 
-    print(type(weights))
-    print(weights)
-    # quantised_weights = []
-    #
-    # for value in weights:
-    #     quantised_value = np.round(value, 4)
-    #     quantised_weights.append(quantised_value)
-    #
-    # print(quantised_weights)
     return weights, biases
 
 

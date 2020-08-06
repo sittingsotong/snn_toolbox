@@ -38,7 +38,8 @@ config['simulation'] = {
 }
 
 config['input'] = {
-    'poisson_input': False,          # Images are encodes as spike trains.
+    'poisson_input': False          # Images are encodes as spike trains.
+    # 'input_rate': 10000
 }
 
 config['output'] = {
