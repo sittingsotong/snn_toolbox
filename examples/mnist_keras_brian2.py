@@ -17,6 +17,8 @@ from tensorflow.keras.layers import Conv2D, AveragePooling2D, Flatten, Dense, \
     Dropout, BatchNormalization, Activation
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.utils import to_categorical
+from keras.utils.vis_utils import plot_model
+
 
 from snntoolbox.bin.run import main
 from snntoolbox.utils.utils import import_configparser
@@ -35,6 +37,12 @@ os.makedirs(path_wd)
 ###############
 
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
+# idx = np.argsort(y_test)
+# x_test = x_test[idx]
+# y_test = y_test[idx]
+
+x_test = x_test[y_test == 9]
+y_test = y_test[y_test == 9]
 
 # Normalize input so we can train ANN with it.
 # Will be converted back to integers for SNN layer.
@@ -87,6 +95,8 @@ layer = Dense(units=10,
 model = Model(input_layer, layer)
 
 model.summary()
+plot_model(model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
+
 
 model.compile('adam', 'categorical_crossentropy', ['accuracy'])
 
@@ -119,7 +129,7 @@ config['tools'] = {
 config['simulation'] = {
     'simulator': 'brian2',          # Chooses execution backend of SNN toolbox.
     'duration': 50,                 # Number of time steps to run each sample.
-    'num_to_test': 5,               # How many test samples to run.
+    'num_to_test': 30,               # How many test samples to run.
     'batch_size': 1,                # Batch size for simulation.
     'dt': 0.1                       # Time resolution for ODE solving.
 }
@@ -133,6 +143,7 @@ config['output'] = {
         'spiketrains',              # Leave section empty to turn off plots.
         'spikerates',
         'activations',
+        'input_image',
         'correlation',
         'v_mem',
         'error_t'}

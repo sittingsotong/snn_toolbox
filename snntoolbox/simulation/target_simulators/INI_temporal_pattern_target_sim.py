@@ -154,6 +154,7 @@ def to_binary_numpy(x, num_bits):
         each value in ``x`` is distributed across the last dimension of ``y``.
     """
 
+    print(x)
     n = 2 ** num_bits - 1
     a = np.round(x * n) / n
 
@@ -164,4 +165,5 @@ def to_binary_numpy(x, num_bits):
         y[Ellipsis, i] = b
         a -= b
 
+    print(y)
     return y

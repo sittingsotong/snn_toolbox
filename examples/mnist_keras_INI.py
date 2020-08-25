@@ -17,6 +17,7 @@ from tensorflow.keras.layers import Conv2D, AveragePooling2D, Flatten, Dense, \
     Dropout, Concatenate, BatchNormalization, Activation
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.utils import to_categorical
+from keras.utils.vis_utils import plot_model
 
 from snntoolbox.bin.run import main
 from snntoolbox.utils.utils import import_configparser
@@ -35,6 +36,9 @@ os.makedirs(path_wd)
 ###############
 
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+x_test = x_test[y_test == 9]
+y_test = y_test[y_test == 9]
 
 # Normalize input so we can train ANN with it.
 # Will be converted back to integers for SNN layer.
@@ -64,7 +68,6 @@ np.savez_compressed(os.path.join(path_wd, 'x_norm'), x_train[::10])
 # There are no spikes involved at this point. The model is far more complicated
 # than necessary for MNIST, but serves the purpose to illustrate the kind of
 # layers and topologies supported (in particular branches).
-
 input_shape = x_train.shape[1:]
 input_layer = Input(input_shape)
 
@@ -73,17 +76,13 @@ layer = Conv2D(filters=16,
                strides=(2, 2))(input_layer)
 layer = BatchNormalization(axis=axis)(layer)
 layer = Activation('relu')(layer)
-layer = AveragePooling2D()(layer)
-branch1 = Conv2D(filters=32,
-                 kernel_size=(3, 3),
-                 padding='same',
-                 activation='relu')(layer)
-branch2 = Conv2D(filters=8,
-                 kernel_size=(1, 1),
-                 activation='relu')(layer)
-layer = Concatenate(axis=axis)([branch1, branch2])
-layer = Conv2D(filters=10,
+layer = Conv2D(filters=32,
                kernel_size=(3, 3),
+               activation='relu')(layer)
+layer = AveragePooling2D()(layer)
+layer = Conv2D(filters=8,
+               kernel_size=(3, 3),
+               padding='same',
                activation='relu')(layer)
 layer = Flatten()(layer)
 layer = Dropout(0.01)(layer)
@@ -93,8 +92,42 @@ layer = Dense(units=10,
 model = Model(input_layer, layer)
 
 model.summary()
+plot_model(model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
+
 
 model.compile('adam', 'categorical_crossentropy', ['accuracy'])
+#
+# input_shape = x_train.shape[1:]
+# input_layer = Input(input_shape)
+#
+# layer = Conv2D(filters=16,
+#                kernel_size=(5, 5),
+#                strides=(2, 2))(input_layer)
+# layer = BatchNormalization(axis=axis)(layer)
+# layer = Activation('relu')(layer)
+# layer = AveragePooling2D()(layer)
+# branch1 = Conv2D(filters=32,
+#                  kernel_size=(3, 3),
+#                  padding='same',
+#                  activation='relu')(layer)
+# branch2 = Conv2D(filters=8,
+#                  kernel_size=(1, 1),
+#                  activation='relu')(layer)
+# layer = Concatenate(axis=axis)([branch1, branch2])
+# layer = Conv2D(filters=10,
+#                kernel_size=(3, 3),
+#                activation='relu')(layer)
+# layer = Flatten()(layer)
+# layer = Dropout(0.01)(layer)
+# layer = Dense(units=10,
+#               activation='softmax')(layer)
+#
+# model = Model(input_layer, layer)
+#
+# model.summary()
+# plot_model(model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
+#
+# model.compile('adam', 'categorical_crossentropy', ['accuracy'])
 
 # Train model with backprop.
 model.fit(x_train, y_train, batch_size=64, epochs=1, verbose=2,
@@ -122,22 +155,28 @@ config['tools'] = {
     'normalize': True               # Normalize weights for full dynamic range.
 }
 
+config['conversion'] = {
+    'spike_code': 'temporal_pattern',
+    'num_bits': 8
+}
+
 config['simulation'] = {
     'simulator': 'INI',             # Chooses execution backend of SNN toolbox.
     'duration': 50,                 # Number of time steps to run each sample.
-    'num_to_test': 100,             # How many test samples to run.
-    'batch_size': 50,               # Batch size for simulation.
+    'num_to_test': 30,             # How many test samples to run.
+    'batch_size': 1,               # Batch size for simulation.
     'keras_backend': 'tensorflow'   # Which keras backend to use.
 }
 
 config['output'] = {
     'plot_vars': {                  # Various plots (slows down simulation).
         'spiketrains',              # Leave section empty to turn off plots.
-        'spikerates',
-        'activations',
-        'correlation',
-        'v_mem',
-        'error_t'}
+        'spikerates'}
+        # 'activations',
+#         'correlation',
+#         'input_image',
+#         'v_mem',
+#         'error_t'}
 }
 
 # Store config file.
