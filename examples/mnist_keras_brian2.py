@@ -17,7 +17,7 @@ from tensorflow.keras.layers import Conv2D, AveragePooling2D, Flatten, Dense, \
     Dropout, BatchNormalization, Activation
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.utils import to_categorical
-from keras.utils.vis_utils import plot_model
+# from keras.utils.vis_utils import plot_model
 
 
 from snntoolbox.bin.run import main
@@ -37,12 +37,9 @@ os.makedirs(path_wd)
 ###############
 
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
-# idx = np.argsort(y_test)
-# x_test = x_test[idx]
-# y_test = y_test[idx]
 
-x_test = x_test[y_test == 9]
-y_test = y_test[y_test == 9]
+# x_test = x_test[y_test == 9]
+# y_test = y_test[y_test == 9]
 
 # Normalize input so we can train ANN with it.
 # Will be converted back to integers for SNN layer.
@@ -95,7 +92,7 @@ layer = Dense(units=10,
 model = Model(input_layer, layer)
 
 model.summary()
-plot_model(model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
+# plot_model(model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
 
 
 model.compile('adam', 'categorical_crossentropy', ['accuracy'])
@@ -138,16 +135,16 @@ config['input'] = {
     'poisson_input': False          # Images are encodes as spike trains.
 }
 
-config['output'] = {
-    'plot_vars': {                  # Various plots (slows down simulation).
-        'spiketrains',              # Leave section empty to turn off plots.
-        'spikerates',
-        'activations',
-        'input_image',
-        'correlation',
-        'v_mem',
-        'error_t'}
-}
+# config['output'] = {
+#     'plot_vars': {                  # Various plots (slows down simulation).
+#         'spiketrains',              # Leave section empty to turn off plots.
+#         'spikerates',
+#         'activations',
+#         'input_image',
+#         'correlation',
+#         'v_mem',
+#         'error_t'}
+# }
 
 # Store config file.
 config_filepath = os.path.join(path_wd, 'config')

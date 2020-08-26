@@ -37,8 +37,8 @@ os.makedirs(path_wd)
 
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
-x_test = x_test[y_test == 9]
-y_test = y_test[y_test == 9]
+# x_test = x_test[y_test == 9]
+# y_test = y_test[y_test == 9]
 
 # Normalize input so we can train ANN with it.
 # Will be converted back to integers for SNN layer.
@@ -92,7 +92,7 @@ layer = Dense(units=10,
 model = Model(input_layer, layer)
 
 model.summary()
-plot_model(model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
+# plot_model(model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
 
 
 model.compile('adam', 'categorical_crossentropy', ['accuracy'])
@@ -168,16 +168,16 @@ config['simulation'] = {
     'keras_backend': 'tensorflow'   # Which keras backend to use.
 }
 
-config['output'] = {
-    'plot_vars': {                  # Various plots (slows down simulation).
-        'spiketrains',              # Leave section empty to turn off plots.
-        'spikerates'}
+# config['output'] = {
+#     'plot_vars': {                  # Various plots (slows down simulation).
+#         'spiketrains',              # Leave section empty to turn off plots.
+#         'spikerates'}
         # 'activations',
 #         'correlation',
 #         'input_image',
 #         'v_mem',
 #         'error_t'}
-}
+# }
 
 # Store config file.
 config_filepath = os.path.join(path_wd, 'config')
