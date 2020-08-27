@@ -1,6 +1,6 @@
 import pandas as pd
 
-path='../temp/ann/log/gui/test/accuracy.txt'
+path='../temp/2bits_2/log/gui/test/accuracy.txt'
 
 data = pd.read_csv(path, sep=" ", header=None, skiprows=[0])
 

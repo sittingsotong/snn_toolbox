@@ -155,6 +155,7 @@ def to_binary_numpy(x, num_bits):
     """
 
     print(x)
+    print('change')
     n = 2 ** num_bits - 1
     a = np.round(x * n) / n
 

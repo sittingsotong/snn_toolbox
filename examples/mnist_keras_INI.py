@@ -37,8 +37,8 @@ os.makedirs(path_wd)
 
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
-# x_test = x_test[y_test == 9]
-# y_test = y_test[y_test == 9]
+x_test = x_test[y_test == 9]
+y_test = y_test[y_test == 9]
 
 # Normalize input so we can train ANN with it.
 # Will be converted back to integers for SNN layer.
@@ -157,7 +157,7 @@ config['tools'] = {
 
 config['conversion'] = {
     'spike_code': 'temporal_pattern',
-    'num_bits': 8
+    'num_bits': 1
 }
 
 config['simulation'] = {

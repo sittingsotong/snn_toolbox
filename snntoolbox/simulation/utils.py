@@ -1760,7 +1760,7 @@ def quantise(weight):
         neg = True
         weight = abs(weight)
 
-    for index in range(8):
+    for index in range(2):
         weight *= 2
         if weight >= 1:
             weight -= 1
@@ -1790,23 +1790,23 @@ def get_weights(layer):
     if len(all_weights) == 2:
         weights, biases = all_weights
         # weights = np.round(weights, 1)
-        # a, b, c, d = weights.shape
-        # for i in range(a):
-        #     for j in range(b):
-        #         for k in range(c):
-        #             for l in range(d):
-        #                 weights[i][j][k][l] = quantise(weights[i][j][k][l])
+        a, b, c, d = weights.shape
+        for i in range(a):
+            for j in range(b):
+                for k in range(c):
+                    for l in range(d):
+                        weights[i][j][k][l] = quantise(weights[i][j][k][l])
         print(weights)
     elif len(all_weights) == 3:
         weights, biases, masks = all_weights
         weights = weights * masks
         # weights = np.round(weights, 1)
-        # a, b, c, d = weights.shape
-        # for i in range(a):
-        #     for j in range(b):
-        #         for k in range(c):
-        #             for l in range(d):
-        #                 weights[i][j][k][l] = quantise(weights[i][j][k][l])
+        a, b, c, d = weights.shape
+        for i in range(a):
+            for j in range(b):
+                for k in range(c):
+                    for l in range(d):
+                        weights[i][j][k][l] = quantise(weights[i][j][k][l])
         print(weights)
     else:
         raise ValueError("Layer {} was expected to contain weights, biases "

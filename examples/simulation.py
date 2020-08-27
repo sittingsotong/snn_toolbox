@@ -19,30 +19,30 @@ configparser = import_configparser()
 config = configparser.ConfigParser()
 
 # brian2
-config['paths'] = {
-    'path_wd': path_wd,             # Path to model.
-    'dataset_path': path_wd,        # Path to dataset.
-    'filename_ann': model_name,      # Name of input model.
-    'filename_parsed_model': parsed_name
-}
-
-config['tools'] = {
-    'evaluate_ann': True,           # Test ANN on dataset before conversion.
-    'normalize': True,              # Normalize weights for full dynamic range.
-}
-
-config['simulation'] = {
-    'simulator': 'brian2',          # Chooses execution backend of SNN toolbox.
-    'duration': 50,                 # Number of time steps to run each sample.
-    'num_to_test':30,               # How many test samples to run.
-    'batch_size': 1,                # Batch size for simulation.
-    'dt': 0.1,                       # Time resolution for ODE solving.
-}
-
-config['input'] = {
-    'poisson_input': False,          # Images are encodes as spike trains.
-    # 'input_rate': 3000
-}
+# config['paths'] = {
+#     'path_wd': path_wd,             # Path to model.
+#     'dataset_path': path_wd,        # Path to dataset.
+#     'filename_ann': model_name,      # Name of input model.
+#     'filename_parsed_model': parsed_name
+# }
+#
+# config['tools'] = {
+#     'evaluate_ann': True,           # Test ANN on dataset before conversion.
+#     'normalize': True,              # Normalize weights for full dynamic range.
+# }
+#
+# config['simulation'] = {
+#     'simulator': 'brian2',          # Chooses execution backend of SNN toolbox.
+#     'duration': 50,                 # Number of time steps to run each sample.
+#     'num_to_test':30,               # How many test samples to run.
+#     'batch_size': 1,                # Batch size for simulation.
+#     'dt': 0.1,                       # Time resolution for ODE solving.
+# }
+#
+# config['input'] = {
+#     'poisson_input': False,          # Images are encodes as spike trains.
+#     # 'input_rate': 3000
+# }
 
 # config['output'] = {
     # 'plot_vars': {                  # Various plots (slows down simulation).
@@ -56,29 +56,29 @@ config['input'] = {
 # }
 
 # INI
-# config['paths'] = {
-#     'path_wd': path_wd,             # Path to model.
-#     'dataset_path': path_wd,        # Path to dataset.
-#     'filename_ann': model_name      # Name of input model.
-# }
-#
-# config['tools'] = {
-#     'evaluate_ann': True,           # Test ANN on dataset before conversion.
-#     'normalize': True               # Normalize weights for full dynamic range.
-# }
-#
-# config['conversion'] = {
-#     'spike_code': 'temporal_pattern',
-#     'num_bits': 6
-# }
-#
-# config['simulation'] = {
-#     'simulator': 'INI',             # Chooses execution backend of SNN toolbox.
-#     'duration': 50,                 # Number of time steps to run each sample.
-#     'num_to_test': 30,             # How many test samples to run.
-#     'batch_size': 1,               # Batch size for simulation.
-#     'keras_backend': 'tensorflow'   # Which keras backend to use.
-# }
+config['paths'] = {
+    'path_wd': path_wd,             # Path to model.
+    'dataset_path': path_wd,        # Path to dataset.
+    'filename_ann': model_name      # Name of input model.
+}
+
+config['tools'] = {
+    'evaluate_ann': True,           # Test ANN on dataset before conversion.
+    'normalize': True               # Normalize weights for full dynamic range.
+}
+
+config['conversion'] = {
+    'spike_code': 'temporal_pattern',
+    'num_bits': 2
+}
+
+config['simulation'] = {
+    'simulator': 'INI',             # Chooses execution backend of SNN toolbox.
+    'duration': 50,                 # Number of time steps to run each sample.
+    'num_to_test': 30,             # How many test samples to run.
+    'batch_size': 1,               # Batch size for simulation.
+    'keras_backend': 'tensorflow'   # Which keras backend to use.
+}
 
 # config['output'] = {
 #     'plot_vars': {                  # Various plots (slows down simulation).
